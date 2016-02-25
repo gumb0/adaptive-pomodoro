@@ -1,2 +1,3 @@
-# pomodoro_timer
-Simple humble timer for Pomodoro technique I've made for myself
+# Pomodoro Timer
+
+Simple humble timer for Pomodoro technique built with C++ and Qt5.

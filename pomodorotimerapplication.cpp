@@ -4,7 +4,7 @@
 #include <QTimer>
 
 PomodoroTimerApplication::PomodoroTimerApplication(int& argc, char** argv) : QApplication{argc, argv},
-    mIdleIcon{":/tomato_icon.png"},
+    mIdleIcon{":/resources/tomato_icon.png"},
     mSystemTrayIcon{mIdleIcon, this},
     mMenu{nullptr},
     mTimer{new QTimer(this)},
