@@ -9,7 +9,7 @@ enum class PomodoroState
 {
     Idle,
     Work,
-    Break
+    Rest
 };
 
 class PomodoroTimerApplication : public QApplication
