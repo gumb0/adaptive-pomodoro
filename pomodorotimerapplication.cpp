@@ -33,6 +33,7 @@ PomodoroTimerApplication::PomodoroTimerApplication(int& argc, char** argv) : QAp
 
     mSystemTrayIcon.show();
 
+    mTimer.setInterval(IconUpdateIntervalMsec);
     connect(&mTimer, &QTimer::timeout, this, &PomodoroTimerApplication::onTimer);
 }
 
@@ -53,35 +54,38 @@ void PomodoroTimerApplication::setupMenu()
 
 void PomodoroTimerApplication::onStartPomodoro()
 {
-    mTimer.start(IconUpdateIntervalMsec);
-    mMinutesLeft = WorkIntervalMinutes;
-    mCurrentState = PomodoroState::Work;
+    startWork();
     updateSystemTrayIcon();
 }
 
 void PomodoroTimerApplication::updateSystemTrayIcon()
 {
-    if (mCurrentState == PomodoroState::Idle)
-    {
-        mSystemTrayIcon.setIcon(mIdleIcon);
-        return;
-    }
+    mSystemTrayIcon.setIcon(getCurrentIcon());
+}
+
+QIcon PomodoroTimerApplication::getCurrentIcon() const
+{
+    return mCurrentState == PomodoroState::Idle ? mIdleIcon :
+        createNumberIcon(mCurrentState, mMinutesLeft);
+}
+
+QIcon PomodoroTimerApplication::createNumberIcon(PomodoroState state, int minutes) const
+{
+    Q_ASSERT(state == PomodoroState::Work || state == PomodoroState::Rest);
 
     QRect geometry = mSystemTrayIcon.geometry();
 
     QPixmap pixmap{geometry.size()};
-    pixmap.fill(mCurrentState == PomodoroState::Work ? ColorWork : ColorRest);
+    pixmap.fill(state == PomodoroState::Work ? ColorWork : ColorRest);
 
     QPainter painter{&pixmap};
 
     painter.setFont(IconFont);
     // TODO choose font color
     painter.drawText(2, 0, geometry.width() - 4, geometry.height(), Qt::AlignCenter,
-        QString::number(mMinutesLeft));
+        QString::number(minutes));
 
-    QIcon icon{pixmap};
-
-    mSystemTrayIcon.setIcon(icon);
+    return QIcon{pixmap};
 }
 
 void PomodoroTimerApplication::onTimer()
@@ -90,27 +94,44 @@ void PomodoroTimerApplication::onTimer()
 
     if (mMinutesLeft == 0)
     {
-        if (mCurrentState == PomodoroState::Work)
+        QApplication::beep();
+        // TODO show tooltip with notification
+
+        switch (mCurrentState)
         {
-            mMinutesLeft = RestIntervalMinutes;
-            mCurrentState = PomodoroState::Rest;
-            QApplication::beep();
-            mTimer.start();
-        }
-        else if (mCurrentState == PomodoroState::Rest)
-        {
-            mCurrentState = PomodoroState::Idle;
-            QApplication::beep();
-            mTimer.stop();
-        }
-        else
-        {
+        case (PomodoroState::Work):
+            startRest();
+            break;
+        case (PomodoroState::Rest):
+            startIdle();
+            break;
+        default:
             Q_ASSERT(false);
         }
-
     }
 
     updateSystemTrayIcon();
+}
+
+void PomodoroTimerApplication::startWork()
+{
+    mCurrentState = PomodoroState::Work;
+    mMinutesLeft = WorkIntervalMinutes;
+    mTimer.start();
+}
+
+void PomodoroTimerApplication::startRest()
+{
+    mCurrentState = PomodoroState::Rest;
+    mMinutesLeft = RestIntervalMinutes;
+    mTimer.start();
+}
+
+void PomodoroTimerApplication::startIdle()
+{
+    mCurrentState = PomodoroState::Idle;
+    mMinutesLeft = 0;
+    mTimer.stop();
 }
 
 void PomodoroTimerApplication::onExit()

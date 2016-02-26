@@ -28,6 +28,12 @@ public slots:
 private:
     void setupMenu();
     void updateSystemTrayIcon();
+    QIcon getCurrentIcon() const;
+    QIcon createNumberIcon(PomodoroState state, int minutes) const;
+
+    void startWork();
+    void startRest();
+    void startIdle();
 
 private:
     const QIcon mIdleIcon;
