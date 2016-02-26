@@ -4,6 +4,7 @@
 #include <QApplication>
 #include <QMenu>
 #include <QSystemTrayIcon>
+#include <QTimer>
 
 enum class PomodoroState
 {
@@ -25,13 +26,14 @@ public slots:
     void onExit();
 
 private:
+    void setupMenu();
     void updateSystemTrayIcon();
 
 private:
     const QIcon mIdleIcon;
     QSystemTrayIcon mSystemTrayIcon;
     QMenu mMenu;
-    QTimer* mTimer;
+    QTimer mTimer;
     int mMinutesLeft;
     PomodoroState mCurrentState;
 };

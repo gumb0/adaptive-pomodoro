@@ -1,7 +1,6 @@
 #include "pomodorotimerapplication.h"
 
 #include <QPainter>
-#include <QTimer>
 
 namespace
 {
@@ -22,14 +21,21 @@ namespace
 
 PomodoroTimerApplication::PomodoroTimerApplication(int& argc, char** argv) : QApplication{argc, argv},
     mIdleIcon{IdleIconPath},
-    mSystemTrayIcon{mIdleIcon, this},
-    mMenu{nullptr},
-    mTimer{new QTimer(this)},
+    mSystemTrayIcon{mIdleIcon},
     mMinutesLeft{0},
     mCurrentState{PomodoroState::Idle}
 {
     // TODO check whether a system tray is present on the user's desktop
 
+    setupMenu();
+
+    mSystemTrayIcon.show();
+
+    connect(&mTimer, &QTimer::timeout, this, &PomodoroTimerApplication::onTimer);
+}
+
+void PomodoroTimerApplication::setupMenu()
+{
     QAction* action1{new QAction(ActionStartPomodoro, this)};
     mMenu.addAction(action1);
 
@@ -41,15 +47,11 @@ PomodoroTimerApplication::PomodoroTimerApplication(int& argc, char** argv) : QAp
     mMenu.addAction(action);
 
     mSystemTrayIcon.setContextMenu(&mMenu);
-
-    mSystemTrayIcon.show();
-
-    connect(mTimer, &QTimer::timeout, this, &PomodoroTimerApplication::onTimer);
 }
 
 void PomodoroTimerApplication::onStartPomodoro()
 {
-    mTimer->start(IconUpdateIntervalMsec);
+    mTimer.start(IconUpdateIntervalMsec);
     mMinutesLeft = WorkIntervalMinutes;
     mCurrentState = PomodoroState::Work;
     updateSystemTrayIcon();
@@ -68,9 +70,9 @@ void PomodoroTimerApplication::updateSystemTrayIcon()
     painter.drawText(2, 0, geometry.width() - 4, geometry.height(), Qt::AlignCenter,
         QString::number(mMinutesLeft));
 
-    QIcon icon2{pixmap};
+    QIcon icon{pixmap};
 
-    mSystemTrayIcon.setIcon(icon2);
+    mSystemTrayIcon.setIcon(icon);
 }
 
 void PomodoroTimerApplication::onTimer()
@@ -84,13 +86,13 @@ void PomodoroTimerApplication::onTimer()
             mMinutesLeft = RestIntervalMinutes;
             mCurrentState = PomodoroState::Rest;
             QApplication::beep();
-            mTimer->start();
+            mTimer.start();
         }
         else if (mCurrentState == PomodoroState::Rest)
         {
             mCurrentState = PomodoroState::Idle;
             QApplication::beep();
-            mTimer->stop();
+            mTimer.stop();
         }
         else
         {
