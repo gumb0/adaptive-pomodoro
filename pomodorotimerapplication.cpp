@@ -4,6 +4,7 @@
 
 namespace
 {
+    // TODO choose better icon
     const QString IdleIconPath{":/resources/tomato_icon.png"};
 
     const QString ActionStartPomodoro{QObject::tr("Start pomodoro")};
@@ -16,6 +17,7 @@ namespace
     const QColor ColorWork{Qt::darkRed};
     const QColor ColorRest{Qt::darkGreen};
 
+    // TODO choose better font
     const QFont IconFont{"Helvetica", 18};
 }
 
@@ -59,6 +61,12 @@ void PomodoroTimerApplication::onStartPomodoro()
 
 void PomodoroTimerApplication::updateSystemTrayIcon()
 {
+    if (mCurrentState == PomodoroState::Idle)
+    {
+        mSystemTrayIcon.setIcon(mIdleIcon);
+        return;
+    }
+
     QRect geometry = mSystemTrayIcon.geometry();
 
     QPixmap pixmap{geometry.size()};
@@ -67,6 +75,7 @@ void PomodoroTimerApplication::updateSystemTrayIcon()
     QPainter painter{&pixmap};
 
     painter.setFont(IconFont);
+    // TODO choose font color
     painter.drawText(2, 0, geometry.width() - 4, geometry.height(), Qt::AlignCenter,
         QString::number(mMinutesLeft));
 
