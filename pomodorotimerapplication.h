@@ -26,6 +26,7 @@ public slots:
     void onExit();
 
 private:
+    QFont createFont();
     void setupMenu();
     void updateSystemTrayIcon();
     QIcon getCurrentIcon() const;
@@ -38,6 +39,7 @@ private:
 private:
     const QIcon mIdleIcon;
     QSystemTrayIcon mSystemTrayIcon;
+    QFont mFont;
     QMenu mMenu;
     QTimer mTimer;
     int mMinutesLeft;

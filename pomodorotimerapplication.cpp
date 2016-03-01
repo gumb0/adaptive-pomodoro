@@ -17,13 +17,16 @@ namespace
     const QColor ColorWork{Qt::darkRed};
     const QColor ColorRest{Qt::darkGreen};
 
-    // TODO choose better font
-    const QFont IconFont{"Helvetica", 18};
+    const int TextIconSize{128};
+    const int TextMargin{10};
+    const QString FontFamily{"arial"};
+    const QColor ColorText{Qt::white};
 }
 
 PomodoroTimerApplication::PomodoroTimerApplication(int& argc, char** argv) : QApplication{argc, argv},
     mIdleIcon{IdleIconPath},
     mSystemTrayIcon{mIdleIcon},
+    mFont{createFont()},
     mMinutesLeft{0},
     mCurrentState{PomodoroState::Idle}
 {
@@ -35,6 +38,14 @@ PomodoroTimerApplication::PomodoroTimerApplication(int& argc, char** argv) : QAp
 
     mTimer.setInterval(IconUpdateIntervalMsec);
     connect(&mTimer, &QTimer::timeout, this, &PomodoroTimerApplication::onTimer);
+}
+
+QFont PomodoroTimerApplication::createFont()
+{
+    QFont font{FontFamily};
+    font.setPixelSize(TextIconSize - TextMargin * 2);
+
+    return font;
 }
 
 void PomodoroTimerApplication::setupMenu()
@@ -73,16 +84,15 @@ QIcon PomodoroTimerApplication::createNumberIcon(PomodoroState state, int minute
 {
     Q_ASSERT(state == PomodoroState::Work || state == PomodoroState::Rest);
 
-    QRect geometry = mSystemTrayIcon.geometry();
-
-    QPixmap pixmap{geometry.size()};
+    QPixmap pixmap{TextIconSize, TextIconSize};
     pixmap.fill(state == PomodoroState::Work ? ColorWork : ColorRest);
 
     QPainter painter{&pixmap};
 
-    painter.setFont(IconFont);
-    // TODO choose font color
-    painter.drawText(2, 0, geometry.width() - 4, geometry.height(), Qt::AlignCenter,
+    painter.setFont(mFont);
+    painter.setPen(ColorText);
+    const int sizeWithoutMargin = TextIconSize - 2 * TextMargin;
+    painter.drawText(TextMargin, TextMargin, sizeWithoutMargin, sizeWithoutMargin, Qt::AlignCenter,
         QString::number(minutes));
 
     return QIcon{pixmap};
@@ -94,6 +104,7 @@ void PomodoroTimerApplication::onTimer()
 
     if (mMinutesLeft == 0)
     {
+        // TODO choose better sound
         QApplication::beep();
         // TODO show tooltip with notification
 
