@@ -5,7 +5,7 @@
 namespace
 {
     // TODO choose better icon
-    const QString IdleIconPath{":/resources/tomato_icon.png"};
+    const QString IdleIconPath{":/resources/Tomato-48.png"};
 
     const QString ActionStartPomodoro{QObject::tr("Start pomodoro")};
     const QString ActionExit{QObject::tr("Exit")};
