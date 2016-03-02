@@ -22,3 +22,5 @@ FORMS    +=
 
 RESOURCES += \
     resources.qrc
+
+RC_ICONS = resources/Tomato-48.ico
