@@ -22,6 +22,11 @@ namespace
     const QColor ColorText{Qt::white};
 }
 
+bool PomodoroTimerApplication::isPlatformSupported()
+{
+    return QSystemTrayIcon::isSystemTrayAvailable();
+}
+
 PomodoroTimerApplication::PomodoroTimerApplication(int& argc, char** argv) : QApplication{argc, argv},
     mIdleIcon{IdleIconPath},
     mSystemTrayIcon{mIdleIcon},
@@ -29,8 +34,6 @@ PomodoroTimerApplication::PomodoroTimerApplication(int& argc, char** argv) : QAp
     mMinutesLeft{0},
     mCurrentState{PomodoroState::Idle}
 {
-    // TODO check whether a system tray is present on the user's desktop
-
     setupMenu();
 
     mSystemTrayIcon.show();

@@ -18,6 +18,9 @@ class PomodoroTimerApplication : public QApplication
     Q_OBJECT
 
 public:
+    static bool isPlatformSupported();
+
+public:
     PomodoroTimerApplication(int& argc, char** argv);
 
 public slots:
