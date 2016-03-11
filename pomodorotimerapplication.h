@@ -39,6 +39,8 @@ private:
     void startRest();
     void startIdle();
 
+    void showEndMessage(PomodoroState state);
+
 private:
     const QIcon mIdleIcon;
     QSystemTrayIcon mSystemTrayIcon;

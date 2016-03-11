@@ -9,6 +9,9 @@ namespace
     const QString ActionStartPomodoro{QObject::tr("Start pomodoro")};
     const QString ActionExit{QObject::tr("Exit")};
 
+    const QString PomodoroEndMessage{QObject::tr("Pomodoro is over")};
+    const QString BreakEndMessage{QObject::tr("Break is over")};
+
     const int IconUpdateIntervalMsec{60 * 1000};
     const int WorkIntervalMinutes{25};
     const int RestIntervalMinutes{5};
@@ -108,7 +111,7 @@ void PomodoroTimerApplication::onTimer()
     {
         // TODO choose better sound
         QApplication::beep();
-        // TODO show tooltip with notification
+        showEndMessage(mCurrentState);
 
         switch (mCurrentState)
         {
@@ -145,6 +148,14 @@ void PomodoroTimerApplication::startIdle()
     mCurrentState = PomodoroState::Idle;
     mMinutesLeft = 0;
     mTimer.stop();
+}
+
+void PomodoroTimerApplication::showEndMessage(PomodoroState state)
+{
+    Q_ASSERT(state == PomodoroState::Work || state == PomodoroState::Rest);
+
+    const QString message = state == PomodoroState::Work ? PomodoroEndMessage : BreakEndMessage;
+    mSystemTrayIcon.showMessage(QString(), message, QSystemTrayIcon::NoIcon);
 }
 
 void PomodoroTimerApplication::onExit()
