@@ -1,5 +1,6 @@
 <RCC>
     <qresource prefix="/">
         <file>resources/Tomato-48.ico</file>
+        <file>resources/kitchen_timer_bell_ring.wav</file>
     </qresource>
 </RCC>

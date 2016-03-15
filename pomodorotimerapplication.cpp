@@ -1,10 +1,12 @@
 #include "pomodorotimerapplication.h"
 
 #include <QPainter>
+#include <QSound>
 
 namespace
 {
     const QString IdleIconPath{":/resources/Tomato-48.ico"};
+    const QString NotificationSoundPath{":/resources/kitchen_timer_bell_ring.wav"};
 
     const QString ActionStartPomodoro{QObject::tr("Start pomodoro")};
     const QString ActionExit{QObject::tr("Exit")};
@@ -109,8 +111,7 @@ void PomodoroTimerApplication::onTimer()
 
     if (mMinutesLeft == 0)
     {
-        // TODO choose better sound
-        QApplication::beep();
+        QSound::play(NotificationSoundPath);
         showEndMessage(mCurrentState);
 
         switch (mCurrentState)
