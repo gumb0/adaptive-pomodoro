@@ -10,14 +10,13 @@ namespace
 
 int main(int argc, char *argv[])
 {
+    PomodoroTimerApplication a(argc, argv);
+
     if (!PomodoroTimerApplication::isPlatformSupported())
     {
         QMessageBox::critical(nullptr, ErrorTitle, ErrorPlatrofmNotSupported);
         return -1;
     }
-
-
-    PomodoroTimerApplication a(argc, argv);
 
     return a.exec();
 }
