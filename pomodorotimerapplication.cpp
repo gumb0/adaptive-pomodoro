@@ -8,14 +8,15 @@ namespace
     const QString IdleIconPath{":/resources/Tomato-48.ico"};
     const QString NotificationSoundPath{":/resources/kitchen_timer_bell_ring.wav"};
 
-    const QString ActionStartPomodoro{QObject::tr("Start pomodoro")};
+    const QString ActionStartPomodoro{QObject::tr("Start %1 min pomodoro")};
     const QString ActionExit{QObject::tr("Exit")};
 
     const QString PomodoroEndMessage{QObject::tr("Pomodoro is over")};
     const QString BreakEndMessage{QObject::tr("Break is over")};
 
     const int IconUpdateIntervalMsec{60 * 1000};
-    const int WorkIntervalMinutes{25};
+    const int WorkIntervalDefaltMinutes{25};
+    const int WorkIntervalStepMinutes{5};
     const int RestIntervalMinutes{5};
 
     const QColor ColorWork{Qt::darkRed};
@@ -36,6 +37,7 @@ PomodoroTimerApplication::PomodoroTimerApplication(int& argc, char** argv) : QAp
     mIdleIcon{IdleIconPath},
     mSystemTrayIcon{mIdleIcon},
     mFont{createFont()},
+    mWorkIntervalMinutes{WorkIntervalDefaltMinutes},
     mMinutesLeft{0},
     mCurrentState{PomodoroState::Idle}
 {
@@ -57,10 +59,11 @@ QFont PomodoroTimerApplication::createFont()
 
 void PomodoroTimerApplication::setupMenu()
 {
-    QAction* action1{new QAction(ActionStartPomodoro, this)};
-    mMenu.addAction(action1);
+    mMenu.clear();
 
-    connect(action1, &QAction::triggered, this, &PomodoroTimerApplication::onStartPomodoro);
+    addStartPomodoroItem(mWorkIntervalMinutes - WorkIntervalStepMinutes);
+    addStartPomodoroItem(mWorkIntervalMinutes);
+    addStartPomodoroItem(mWorkIntervalMinutes + WorkIntervalStepMinutes);
 
     QAction* action{new QAction(ActionExit, this)};
     connect(action, &QAction::triggered, this, &PomodoroTimerApplication::onExit);
@@ -70,8 +73,21 @@ void PomodoroTimerApplication::setupMenu()
     mSystemTrayIcon.setContextMenu(&mMenu);
 }
 
-void PomodoroTimerApplication::onStartPomodoro()
+void PomodoroTimerApplication::addStartPomodoroItem(int workInterval)
 {
+    QAction* action{new QAction(ActionStartPomodoro.arg(workInterval), this)};
+    connect(action, &QAction::triggered, [this, workInterval]() { onStartPomodoro(workInterval); });
+
+    if (workInterval <= 0 || workInterval >= 99)
+        action->setEnabled(false);
+
+    mMenu.addAction(action);
+}
+
+void PomodoroTimerApplication::onStartPomodoro(int workInterval)
+{
+    mWorkIntervalMinutes = workInterval;
+    setupMenu();
     startWork();
     updateSystemTrayIcon();
 }
@@ -133,7 +149,7 @@ void PomodoroTimerApplication::onTimer()
 void PomodoroTimerApplication::startWork()
 {
     mCurrentState = PomodoroState::Work;
-    mMinutesLeft = WorkIntervalMinutes;
+    mMinutesLeft = mWorkIntervalMinutes;
     mTimer.start();
 }
 

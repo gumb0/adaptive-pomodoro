@@ -24,13 +24,14 @@ public:
     PomodoroTimerApplication(int& argc, char** argv);
 
 public slots:
-    void onStartPomodoro();
+    void onStartPomodoro(int workInterval);
     void onTimer();
     void onExit();
 
 private:
     QFont createFont();
     void setupMenu();
+    void addStartPomodoroItem(int workInterval);
     void updateSystemTrayIcon();
     QIcon getCurrentIcon() const;
     QIcon createNumberIcon(PomodoroState state, int minutes) const;
@@ -47,6 +48,7 @@ private:
     QFont mFont;
     QMenu mMenu;
     QTimer mTimer;
+    int mWorkIntervalMinutes;
     int mMinutesLeft;
     PomodoroState mCurrentState;
 };
