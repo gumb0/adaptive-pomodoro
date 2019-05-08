@@ -25,7 +25,8 @@ public:
 
 public slots:
     void onStartPomodoro(int workInterval);
-    void onTimer();
+    void onUpdateTimer();
+    void onIdleTimer();
     void onExit();
 
 private:
@@ -47,7 +48,8 @@ private:
     QSystemTrayIcon mSystemTrayIcon;
     QFont mFont;
     QMenu mMenu;
-    QTimer mTimer;
+    QTimer mUpdateTimer;
+    QTimer mIdleTimer;
     int mWorkIntervalMinutes;
     int mMinutesLeft;
     PomodoroState mCurrentState;

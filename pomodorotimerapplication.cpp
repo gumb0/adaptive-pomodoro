@@ -13,11 +13,13 @@ namespace
 
     const QString PomodoroEndMessage{QObject::tr("Pomodoro is over")};
     const QString BreakEndMessage{QObject::tr("Break is over")};
+    const QString IdleAlertMessage{QObject::tr("You should get back to work!")};
 
     const int IconUpdateIntervalMsec{60 * 1000};
     const int WorkIntervalDefaltMinutes{25};
     const int WorkIntervalStepMinutes{5};
     const int RestIntervalMinutes{5};
+    const int IdleAlertIntervalMsec{5 * 60 * 1000};
 
     const QColor ColorWork{Qt::darkRed};
     const QColor ColorRest{Qt::darkGreen};
@@ -45,8 +47,11 @@ PomodoroTimerApplication::PomodoroTimerApplication(int& argc, char** argv) : QAp
 
     mSystemTrayIcon.show();
 
-    mTimer.setInterval(IconUpdateIntervalMsec);
-    connect(&mTimer, &QTimer::timeout, this, &PomodoroTimerApplication::onTimer);
+    mUpdateTimer.setInterval(IconUpdateIntervalMsec);
+    connect(&mUpdateTimer, &QTimer::timeout, this, &PomodoroTimerApplication::onUpdateTimer);
+
+    mIdleTimer.setInterval(IdleAlertIntervalMsec);
+    connect(&mIdleTimer, &QTimer::timeout, this, &PomodoroTimerApplication::onIdleTimer);
 }
 
 QFont PomodoroTimerApplication::createFont()
@@ -121,7 +126,7 @@ QIcon PomodoroTimerApplication::createNumberIcon(PomodoroState state, int minute
     return QIcon{pixmap};
 }
 
-void PomodoroTimerApplication::onTimer()
+void PomodoroTimerApplication::onUpdateTimer()
 {
     --mMinutesLeft;
 
@@ -146,25 +151,34 @@ void PomodoroTimerApplication::onTimer()
     updateSystemTrayIcon();
 }
 
+void PomodoroTimerApplication::onIdleTimer()
+{
+    QSound::play(NotificationSoundPath);
+    mSystemTrayIcon.showMessage(QString(), IdleAlertMessage, QSystemTrayIcon::NoIcon);
+    mIdleTimer.start();
+}
+
 void PomodoroTimerApplication::startWork()
 {
+    mIdleTimer.stop();
     mCurrentState = PomodoroState::Work;
     mMinutesLeft = mWorkIntervalMinutes;
-    mTimer.start();
+    mUpdateTimer.start();
 }
 
 void PomodoroTimerApplication::startRest()
 {
     mCurrentState = PomodoroState::Rest;
     mMinutesLeft = RestIntervalMinutes;
-    mTimer.start();
+    mUpdateTimer.start();
 }
 
 void PomodoroTimerApplication::startIdle()
 {
     mCurrentState = PomodoroState::Idle;
     mMinutesLeft = 0;
-    mTimer.stop();
+    mUpdateTimer.stop();
+    mIdleTimer.start();
 }
 
 void PomodoroTimerApplication::showEndMessage(PomodoroState state)
