@@ -10,6 +10,8 @@ greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
 CONFIG += c++11
 
+equals(QMAKE_CXX, g++) { QMAKE_LFLAGS += -no-pie }
+
 TARGET = PomodoroTimer
 TEMPLATE = app
 
