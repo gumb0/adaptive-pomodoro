@@ -52,7 +52,7 @@ private:
     QFont mFont;
     QMenu mMenu;
     QTimer mTimer;
-    int mWorkIntervalMinutes;
+    int mRestIntervalMinutes;
     int mMinutes;
     PomodoroState mCurrentState;
 };

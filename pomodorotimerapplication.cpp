@@ -9,7 +9,7 @@ namespace
     const QString NotificationSoundPath{":/resources/whoosh.wav"};
 
     const QString ActionStartPomodoro{QObject::tr("Start pomodoro")};
-    const QString ActionStartRest{QObject::tr("Break")};
+    const QString ActionStartRest{QObject::tr("Break for %1 min")};
     const QString ActionExit{QObject::tr("Exit")};
 
     const QString PomodoroEndMessage{QObject::tr("Pomodoro is over")};
@@ -36,7 +36,7 @@ PomodoroTimerApplication::PomodoroTimerApplication(int& argc, char** argv) : QAp
     mIdleIcon{IdleIconPath},
     mSystemTrayIcon{mIdleIcon},
     mFont{createFont()},
-    mWorkIntervalMinutes{WorkIntervalDefaltMinutes},
+    mRestIntervalMinutes{0},
     mMinutes{0},
     mCurrentState{PomodoroState::Idle}
 {
@@ -101,8 +101,11 @@ void PomodoroTimerApplication::setupWorkMenu()
 
 void PomodoroTimerApplication::addStartRestItem()
 {
-    QAction* action{new QAction(ActionStartRest, this)};
+    QAction* action{new QAction(ActionStartRest.arg(mRestIntervalMinutes), this)};
     connect(action, &QAction::triggered, [this]() { onStartRest(); });
+
+    if (mRestIntervalMinutes == 0)
+        action->setEnabled(false);
 
     mMenu.addAction(action);
 }
@@ -149,7 +152,14 @@ void PomodoroTimerApplication::onTimer()
     // TODO disable Break menu if mMinutes < 3
 
     if (mCurrentState == PomodoroState::Work)
+    {
         ++mMinutes;
+        if (mMinutes / 3 != mRestIntervalMinutes)
+        {
+            mRestIntervalMinutes = mMinutes / 3;
+            setupWorkMenu();
+        }
+    }
     else if (mCurrentState == PomodoroState::Rest)
     {
         --mMinutes;
@@ -172,13 +182,14 @@ void PomodoroTimerApplication::startWork()
 {
     mCurrentState = PomodoroState::Work;
     mMinutes = 0;
+    mRestIntervalMinutes = 0;
     mTimer.start();
 }
 
 void PomodoroTimerApplication::startRest()
 {
     mCurrentState = PomodoroState::Rest;
-    mMinutes = mMinutes / 3;
+    mMinutes = mRestIntervalMinutes;
     mTimer.start();
 }
 
