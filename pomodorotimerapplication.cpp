@@ -6,7 +6,7 @@
 namespace
 {
     const QString IdleIconPath{":/resources/Tomato-48.ico"};
-    const QString NotificationSoundPath{":/resources/kitchen_timer_bell_ring.wav"};
+    const QString NotificationSoundPath{":/resources/whoosh.wav"};
 
     const QString ActionStartPomodoro{QObject::tr("Start %1 min pomodoro")};
     const QString ActionExit{QObject::tr("Exit")};

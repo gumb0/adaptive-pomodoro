@@ -14,4 +14,4 @@ Built with C++ and Qt5.
 
 Tomato icon by [Icons8](https://icons8.com/)
 
-Bell ring sound by [freeSFX](http://www.freesfx.co.uk/)
+Whoosh sound by [freeSFX](http://www.freesfx.co.uk/)
