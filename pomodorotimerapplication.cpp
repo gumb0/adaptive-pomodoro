@@ -8,7 +8,8 @@ namespace
     const QString IdleIconPath{":/resources/Tomato-48.ico"};
     const QString NotificationSoundPath{":/resources/whoosh.wav"};
 
-    const QString ActionStartPomodoro{QObject::tr("Start %1 min pomodoro")};
+    const QString ActionStartPomodoro{QObject::tr("Start pomodoro")};
+    const QString ActionStartRest{QObject::tr("Break")};
     const QString ActionExit{QObject::tr("Exit")};
 
     const QString PomodoroEndMessage{QObject::tr("Pomodoro is over")};
@@ -16,8 +17,6 @@ namespace
 
     const int IconUpdateIntervalMsec{60 * 1000};
     const int WorkIntervalDefaltMinutes{25};
-    const int WorkIntervalStepMinutes{5};
-    const int RestIntervalMinutes{5};
 
     const QColor ColorWork{Qt::darkRed};
     const QColor ColorRest{Qt::darkGreen};
@@ -38,10 +37,10 @@ PomodoroTimerApplication::PomodoroTimerApplication(int& argc, char** argv) : QAp
     mSystemTrayIcon{mIdleIcon},
     mFont{createFont()},
     mWorkIntervalMinutes{WorkIntervalDefaltMinutes},
-    mMinutesLeft{0},
+    mMinutes{0},
     mCurrentState{PomodoroState::Idle}
 {
-    setupMenu();
+    setupRestMenu();
 
     mSystemTrayIcon.show();
 
@@ -57,38 +56,61 @@ QFont PomodoroTimerApplication::createFont()
     return font;
 }
 
-void PomodoroTimerApplication::setupMenu()
+void PomodoroTimerApplication::setupRestMenu()
 {
     mMenu.clear();
 
-    addStartPomodoroItem(mWorkIntervalMinutes - WorkIntervalStepMinutes);
-    addStartPomodoroItem(mWorkIntervalMinutes);
-    addStartPomodoroItem(mWorkIntervalMinutes + WorkIntervalStepMinutes);
-
-    QAction* action{new QAction(ActionExit, this)};
-    connect(action, &QAction::triggered, this, &PomodoroTimerApplication::onExit);
-
-    mMenu.addAction(action);
+    addStartPomodoroItem();
+    addExitItem();
 
     mSystemTrayIcon.setContextMenu(&mMenu);
 }
 
-void PomodoroTimerApplication::addStartPomodoroItem(int workInterval)
+void PomodoroTimerApplication::addStartPomodoroItem()
 {
-    QAction* action{new QAction(ActionStartPomodoro.arg(workInterval), this)};
-    connect(action, &QAction::triggered, [this, workInterval]() { onStartPomodoro(workInterval); });
-
-    if (workInterval <= 0 || workInterval >= 99)
-        action->setEnabled(false);
+    QAction* action{new QAction(ActionStartPomodoro, this)};
+    connect(action, &QAction::triggered, [this]() { onStartPomodoro(); });
 
     mMenu.addAction(action);
 }
 
-void PomodoroTimerApplication::onStartPomodoro(int workInterval)
+void PomodoroTimerApplication::addExitItem()
 {
-    mWorkIntervalMinutes = workInterval;
-    setupMenu();
+    QAction* action{new QAction(ActionExit, this)};
+    connect(action, &QAction::triggered, this, &PomodoroTimerApplication::onExit);
+
+    mMenu.addAction(action);
+}
+
+void PomodoroTimerApplication::onStartPomodoro()
+{
+    setupWorkMenu();
     startWork();
+    updateSystemTrayIcon();
+}
+
+void PomodoroTimerApplication::setupWorkMenu()
+{
+    mMenu.clear();
+
+    addStartRestItem();
+    addExitItem();
+
+    mSystemTrayIcon.setContextMenu(&mMenu);
+}
+
+void PomodoroTimerApplication::addStartRestItem()
+{
+    QAction* action{new QAction(ActionStartRest, this)};
+    connect(action, &QAction::triggered, [this]() { onStartRest(); });
+
+    mMenu.addAction(action);
+}
+
+void PomodoroTimerApplication::onStartRest()
+{
+    setupRestMenu();
+    startRest();
     updateSystemTrayIcon();
 }
 
@@ -100,7 +122,7 @@ void PomodoroTimerApplication::updateSystemTrayIcon()
 QIcon PomodoroTimerApplication::getCurrentIcon() const
 {
     return mCurrentState == PomodoroState::Idle ? mIdleIcon :
-        createNumberIcon(mCurrentState, mMinutesLeft);
+        createNumberIcon(mCurrentState, mMinutes);
 }
 
 QIcon PomodoroTimerApplication::createNumberIcon(PomodoroState state, int minutes) const
@@ -123,25 +145,25 @@ QIcon PomodoroTimerApplication::createNumberIcon(PomodoroState state, int minute
 
 void PomodoroTimerApplication::onTimer()
 {
-    --mMinutesLeft;
+    // TODO update menu with number of minutes of potential break
+    // TODO disable Break menu if mMinutes < 3
 
-    if (mMinutesLeft == 0)
+    if (mCurrentState == PomodoroState::Work)
+        ++mMinutes;
+    else if (mCurrentState == PomodoroState::Rest)
     {
-        QSound::play(NotificationSoundPath);
-        showEndMessage(mCurrentState);
+        --mMinutes;
 
-        switch (mCurrentState)
+        if (mMinutes == 0)
         {
-        case (PomodoroState::Work):
-            startRest();
-            break;
-        case (PomodoroState::Rest):
+            QSound::play(NotificationSoundPath);
+            showEndMessage(mCurrentState);
+
             startIdle();
-            break;
-        default:
-            Q_ASSERT(false);
         }
     }
+    else
+        Q_ASSERT(false);
 
     updateSystemTrayIcon();
 }
@@ -149,21 +171,21 @@ void PomodoroTimerApplication::onTimer()
 void PomodoroTimerApplication::startWork()
 {
     mCurrentState = PomodoroState::Work;
-    mMinutesLeft = mWorkIntervalMinutes;
+    mMinutes = 0;
     mTimer.start();
 }
 
 void PomodoroTimerApplication::startRest()
 {
     mCurrentState = PomodoroState::Rest;
-    mMinutesLeft = RestIntervalMinutes;
+    mMinutes = mMinutes / 3;
     mTimer.start();
 }
 
 void PomodoroTimerApplication::startIdle()
 {
     mCurrentState = PomodoroState::Idle;
-    mMinutesLeft = 0;
+    mMinutes = 0;
     mTimer.stop();
 }
 
