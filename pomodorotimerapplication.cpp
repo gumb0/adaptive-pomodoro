@@ -9,6 +9,7 @@ namespace
     const QString NotificationSoundPath{":/resources/whoosh.wav"};
 
     const QString ActionStartPomodoro{QObject::tr("Start pomodoro")};
+    const QString ActionRestartPomodoro{QObject::tr("Restart pomodoro")};
     const QString ActionStartRest{QObject::tr("Break for %1 min")};
     const QString ActionExit{QObject::tr("Exit")};
 
@@ -94,6 +95,7 @@ void PomodoroTimerApplication::setupWorkMenu()
     mMenu.clear();
 
     addStartRestItem();
+    addRestartPomodoroItem();
     addExitItem();
 
     mSystemTrayIcon.setContextMenu(&mMenu);
@@ -106,6 +108,14 @@ void PomodoroTimerApplication::addStartRestItem()
 
     if (mRestIntervalMinutes == 0)
         action->setEnabled(false);
+
+    mMenu.addAction(action);
+}
+
+void PomodoroTimerApplication::addRestartPomodoroItem()
+{
+    QAction* action{new QAction(ActionRestartPomodoro, this)};
+    connect(action, &QAction::triggered, [this]() { onStartPomodoro(); });
 
     mMenu.addAction(action);
 }

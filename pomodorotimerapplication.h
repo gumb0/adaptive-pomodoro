@@ -34,6 +34,7 @@ private:
     void setupWorkMenu();
     void setupRestMenu();
     void addStartPomodoroItem();
+    void addRestartPomodoroItem();
     void addStartRestItem();
     void addExitItem();
     void updateSystemTrayIcon();
