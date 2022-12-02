@@ -85,8 +85,8 @@ void PomodoroTimerApplication::addExitItem()
 
 void PomodoroTimerApplication::onStartPomodoro()
 {
-    setupWorkMenu();
     startWork();
+    setupWorkMenu();
     updateSystemTrayIcon();
 }
 
